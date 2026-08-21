@@ -1,8 +1,9 @@
 /*
-瓜子影视 drpy spider v2
+瓜子影视 drpy spider v3
 源站: https://gz360.tv
-API: https://hyperf.718fd9f.com/Pc/
+API: https://haiwaiapi.1fc8ab0.com/Pc/
 分类: 热门、电影、电视剧、动漫、综艺、短剧
+主页: 推荐轮播 + 各分类最新内容
 */
 var siteUrl = 'https://haiwaiapi.1fc8ab0.com';
 var PC = '/Pc';
@@ -25,9 +26,11 @@ function getClass() {
   var r = req(siteUrl + PC + '/Index/indexPid');
   var cls = [];
   var data = r.data || [];
+  // 添加"首页"分类
+  cls.push({ cid: '0', cname: '首页推荐' });
   for (var i = 0; i < data.length; i++) {
     var c = data[i];
-    if (!c.type || c.type === 'recommend' || c.type === 'discover') continue;
+    if (!c.type || (c.type !== 'video' && c.type !== 'recommend' && c.type !== 'discover')) continue;
     var kids = [];
     if (c.children) {
       for (var j = 0; j < c.children.length; j++) {
@@ -46,10 +49,13 @@ function getClass() {
 // ========== 列表 ==========
 function getList(cid, pg) {
   pg = pg || 1;
+  // 首页特殊处理
+  if (cid === '0') {
+    return getHomeList();
+  }
   var r = req(siteUrl + PC + '/Index/CategoryList', { body: JSON.stringify({ pid: parseInt(cid), page: pg }) });
   var data = r.data || {};
   var items = [];
-  // CategoryList返回的list是分段结构，需要扁平化
   var sections = data.list || [];
   for (var s = 0; s < sections.length; s++) {
     var inner = sections[s].list || [];
@@ -69,7 +75,6 @@ function getList(cid, pg) {
       });
     }
   }
-  // banner也加入列表
   var banner = data.banner || [];
   for (var b = 0; b < banner.length; b++) {
     var bv = banner[b];
@@ -102,6 +107,58 @@ function getList(cid, pg) {
   };
 }
 
+// ========== 首页推荐列表 ==========
+function getHomeList() {
+  var r = req(siteUrl + PC + '/Index/CategoryList', { body: JSON.stringify({ id: 1, pid: 1, page: 1 }) });
+  var data = r.data || {};
+  var items = [];
+  // 添加banner
+  var banner = data.banner || [];
+  for (var b = 0; b < banner.length; b++) {
+    var bv = banner[b];
+    if (!bv.vod_id) continue;
+    items.push({
+      vod_id: bv.vod_id + '',
+      vod_name: bv.title || '',
+      vod_pic: bv.slide_pic || bv.vod_pic || '',
+      vod_year: '',
+      vod_area: bv.vod_type_name || '',
+      vod_actor: '',
+      vod_content: bv.content || '',
+      vod_remarks: bv.vod_remarks || '',
+      vod_score: '',
+      vod_tag: 'banner'
+    });
+  }
+  // 添加列表
+  var sections = data.list || [];
+  for (var s = 0; s < sections.length; s++) {
+    var inner = sections[s].list || [];
+    for (var k = 0; k < inner.length; k++) {
+      var v = inner[k];
+      items.push({
+        vod_id: v.vod_id + '',
+        vod_name: v.vod_name || '',
+        vod_pic: v.vod_pic || '',
+        vod_year: v.vod_year || '',
+        vod_area: v.vod_area || '',
+        vod_actor: v.vod_actor || '',
+        vod_content: (v.vod_use_content || '').substring(0, 200),
+        vod_remarks: v.vod_continu || '',
+        vod_score: v.vod_scroe || '',
+        vod_tag: sections[s].name || ''
+      });
+    }
+  }
+  return {
+    page: 1,
+    pagecount: 1,
+    limit: items.length,
+    total: items.length,
+    list: items
+  };
+}
+
 // ========== 详情 ==========
 function getDetail(id) {
   var r = req(siteUrl + PC + '/Resource/GetVodInfo', { body: JSON.stringify({ vod_id: id }) });
@@ -109,7 +166,6 @@ function getDetail(id) {
   if (!vod.vod_id) {
     return { list: [] };
   }
-  // 获取播放列表
   var pr = req(siteUrl + PC + '/Resource/GetOnePlayList', { body: JSON.stringify({ vod_id: id }) });
   var playData = pr.data || {};
   var urls = playData.urls || [];
@@ -137,7 +193,6 @@ function getDetail(id) {
 
 // ========== 搜索 ==========
 function search(wd) {
-  // 搜索接口可能受限，尝试多个参数格式
   var results = [];
   var formats = [
     { keyword: wd, page: 1 },
@@ -183,7 +238,7 @@ function homeVod() {
   var r = req(siteUrl + PC + '/Index/latestVideo', { body: '{}' });
   var list = r.data || [];
   var items = [];
-  for (var i = 0; i < list.length; i++) {
+  for (var i = 0; i < list.length && i < 20; i++) {
     var v = list[i];
     items.push({
       vod_id: v.vod_id + '',

@@ -1,7 +1,7 @@
 {
   "name": "我的精选多仓接口",
   "version": "1.3",
-  "description": "基于欧歌模式精选的优质影视仓多仓聚合接口",
+  "description": "基于欧歌模式精选的优质影视仓多仓聚合接口 v1.4",
   "spider": "https://raw.githubusercontent.com/simonxu09notion/tvbox-config/master/jar/custom_spider.jar",
   "sites": [
     {

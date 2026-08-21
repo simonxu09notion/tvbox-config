@@ -16,6 +16,18 @@
       "name": "解析1",
       "type": 1,
       "url": "https://jx.xmflv.com/?url="
+    },
+    {
+      "name": "解析2",
+      "type": 1,
+      "url": "https://jx.xymp4.cc/?url="
+    }
+  ],
+  "lives": [
+    {
+      "name": "瓜子影视",
+      "type": 0,
+      "url": "https://live.fanmingming.com/tv/m3u/ipv6.m3u"
     }
   ]
 }

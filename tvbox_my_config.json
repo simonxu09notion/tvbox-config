@@ -1,0 +1,31 @@
+{
+  "name": "我的精选多仓接口",
+  "version": "1.1",
+  "description": "基于欧歌模式精选的优质影视仓多仓聚合接口",
+  "spider": "https://raw.githubusercontent.com/FongMi/CatVodSpider/main/json/config.json",
+  "sites": [
+    {
+      "key": "guazi",
+      "name": "瓜子影视",
+      "type": 3,
+      "api": "https://raw.githubusercontent.com/FongMi/CatVodSpider/main/json/guazi.js",
+      "searchable": 1,
+      "quickSearch": 0,
+      "filterable": 1
+    }
+  ],
+  "urls": [
+    "http://tv.nxog.top/api.php?mz=xb&id=1&b=欧歌",
+    "http://饭太硬.top/tv",
+    "http://qixing.myhkw.com/DC.txt",
+    "https://pastebin.com/raw/5NHaxyGR",
+    "http://肥猫.live",
+    "https://tvbox.cainisi.cf",
+    "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/XC.json",
+    "http://jk.itvbox.cc:66/可视TV/云星日记/仓库/api.json",
+    "http://52bsj.vip:98/wuaihouse",
+    "https://xhdwc.tk/0",
+    "https://freed.yuanhsing.cf/TVBox/meowcf.json",
+    "http://mywlkj.ddns.net:81/api.php/中国体育/直播"
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "name": "我的精选多仓接口",
-  "version": "2.0",
+  "version": "2.1",
   "description": "精简版多仓聚合接口（2026.08）",
   "spider": "https://raw.githubusercontent.com/gaotianliuyun/gao/master/jar/custom_spider.jar",
   "sites": [

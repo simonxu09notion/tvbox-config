@@ -1,0 +1,26 @@
+{
+  "spider": "https://raw.githubusercontent.com/gaotianliuyun/gao/master/jar/custom_spider.jar",
+  "sites": [
+    {
+      "key": "瓜子影视",
+      "name": "瓜子影视",
+      "type": 3,
+      "api": "https://raw.githubusercontent.com/simonxu09notion/tvbox-config/master/guazi.js",
+      "searchable": 1,
+      "quickSearch": 0,
+      "filterable": 1
+    }
+  ],
+  "parses": [
+    {
+      "name": "解析1",
+      "type": 1,
+      "url": "https://jx.xmflv.com/?url="
+    },
+    {
+      "name": "解析2",
+      "type": 1,
+      "url": "https://jx.xymp4.cc/?url="
+    }
+  ]
+}

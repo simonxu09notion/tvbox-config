@@ -1,5 +1,5 @@
 /*
-瓜子影视 drpy spider v4
+瓜子影视 drpy spider
 源站: https://gz360.tv
 API: https://haiwaiapi.1fc8ab0.com/Pc/
 */
@@ -19,7 +19,6 @@ function req(url, obj) {
   }
 }
 
-// ========== 分类 ==========
 function getClass() {
   var r = req(siteUrl + PC + '/Index/indexPid');
   var cls = [];
@@ -33,208 +32,42 @@ function getClass() {
         kids.push(c.children[j].name);
       }
     }
-    cls.push({
-      cid: c.id + '',
-      cname: c.name,
-      class_tag: kids.join(',')
-    });
+    cls.push({ cid: c.id + '', cname: c.name, class_tag: kids.join(',') });
   }
   return cls;
 }
 
-// ========== 列表 ==========
-function getList(cid, pg) {
-  pg = pg || 1;
-  var r = req(siteUrl + PC + '/Index/CategoryList', { body: JSON.stringify({ pid: parseInt(cid), page: pg }) });
-  var data = r.data || {};
-  var items = [];
-  var sections = data.list || [];
-  for (var s = 0; s < sections.length; s++) {
-    var inner = sections[s].list || [];
-    for (var k = 0; k < inner.length; k++) {
-      var v = inner[k];
-      items.push({
-        vod_id: v.vod_id + '',
-        vod_name: v.vod_name || v.c_name || '',
-        vod_pic: v.vod_pic || v.c_pic || '',
-        vod_year: v.vod_year || '',
-        vod_area: v.vod_area || '',
-        vod_actor: v.vod_actor || '',
-        vod_content: (v.vod_use_content || '').substring(0, 200),
-        vod_remarks: v.vod_continu || '',
-        vod_score: v.vod_scroe || v.vod_douban_score || '',
-        vod_tag: (v.tags || []).join('/')
-      });
-    }
-  }
-  var banner = data.banner || [];
-  for (var b = 0; b < banner.length; b++) {
-    var bv = banner[b];
-    if (!bv.vod_id) continue;
-    var already = false;
-    for (var ex = 0; ex < items.length; ex++) {
-      if (items[ex].vod_id === (bv.vod_id + '')) { already = true; break; }
-    }
-    if (!already) {
-      items.push({
-        vod_id: bv.vod_id + '',
-        vod_name: bv.title || bv.vod_name || '',
-        vod_pic: bv.vod_pic || '',
-        vod_year: bv.vod_year || '',
-        vod_area: bv.vod_type_name || '',
-        vod_actor: '',
-        vod_content: bv.content || '',
-        vod_remarks: bv.vod_remarks || '',
-        vod_score: '',
-        vod_tag: bv.vod_type_name || ''
-      });
-    }
-  }
-  return {
-    page: pg,
-    pagecount: data.total ? Math.ceil(data.total / 20) : pg,
-    limit: 20,
-    total: data.total || items.length,
-    list: items
-  };
-}
-
-// ========== 详情 ==========
-function getDetail(id) {
-  var r = req(siteUrl + PC + '/Resource/GetVodInfo', { body: JSON.stringify({ vod_id: id }) });
-  var vod = r.data && r.data.vodInfo ? r.data.vodInfo : {};
-  if (!vod.vod_id) {
-    return { list: [] };
-  }
-  var pr = req(siteUrl + PC + '/Resource/GetOnePlayList', { body: JSON.stringify({ vod_id: id }) });
-  var playData = pr.data || {};
-  var urls = playData.urls || [];
-  var playList = [];
-  for (var i = 0; i < urls.length; i++) {
-    playList.push(urls[i].name + '$' + urls[i].url);
-  }
-  var item = {
-    vod_id: vod.vod_id + '',
-    vod_name: vod.vod_name || '',
-    vod_pic: vod.pic || '',
-    vod_year: vod.vod_year || '',
-    vod_area: vod.vod_area || '',
-    vod_actor: vod.vod_actor || '',
-    vod_director: vod.vod_director || '',
-    vod_content: vod.vod_use_content || '',
-    vod_remarks: vod.vod_continu || '',
-    vod_score: vod.vod_scroe || '',
-    type_name: (vod.videoTag || []).join('/'),
-    vod_play_from: '瓜子',
-    vod_play_url: playList.join('#')
-  };
-  return { list: [item] };
-}
-
-// ========== 搜索 ==========
-function search(wd) {
-  var results = [];
-  var formats = [
-    { keyword: wd, page: 1 },
-    { kw: wd, page: 1 },
-    { search: wd, page: 1 },
-    { wd: wd, page: 1 }
-  ];
-  for (var i = 0; i < formats.length; i++) {
-    try {
-      var r = req(siteUrl + PC + '/Search/GetList', { body: JSON.stringify(formats[i]) });
-      var list = r.data || [];
-      if (list && list.length > 0) {
-        results = list;
-        break;
-      }
-    } catch(e) {}
-  }
-  var items = [];
-  for (var j = 0; j < results.length; j++) {
-    var v = results[j];
-    items.push({
-      vod_id: v.vod_id + '',
-      vod_name: v.vod_name || '',
-      vod_pic: v.vod_pic || '',
-      vod_remarks: v.vod_continu || '',
-      vod_score: v.vod_scroe || ''
-    });
-  }
-  return { list: items };
-}
-
-// ========== 播放 ==========
-function play(flag, id, flags) {
-  return { parse: 0, url: id, header: {} };
-}
-
-// ========== 主页 ==========
-function home() {
-  return { class: getClass() };
-}
-
-function homeVod() {
-  var r = req(siteUrl + PC + '/Index/latestVideo', { body: '{}' });
-  var list = r.data || [];
-  var items = [];
-  for (var i = 0; i < list.length && i < 20; i++) {
-    var v = list[i];
-    items.push({
-      vod_id: v.vod_id + '',
-      vod_name: v.vod_name || '',
-      vod_pic: v.vod_pic || '',
-      vod_remarks: v.vod_continu || '',
-      vod_score: v.vod_scroe || ''
-    });
-  }
-  return { list: items };
-}
-
-// ========== 分类列表 ==========
-function category(tid, pg, size, year, area, zt, jd) {
-  return getList(tid, pg);
-}
-
-// ========== 导出 ==========
 var Rule = {
   name: '瓜子影视',
-  author: 'Agnes',
   api: '4.0',
-  timeout: 15000,
   searchable: 1,
   quickSearch: 0,
   filterable: 1,
-  playParse: 0,
   style: { type: 'rect', ratio: 0.75 },
   
-  class_parse: function() {
-    return getClass();
+  class_parse: function() { return getClass(); },
+  
+  推荐: function() {
+    var r = req(siteUrl + PC + '/Index/latestVideo', { body: '{}' });
+    var list = r.data || [];
+    var items = [];
+    for (var i = 0; i < list.length && i < 20; i++) {
+      var v = list[i];
+      items.push({
+        vod_id: v.vod_id + '',
+        vod_name: v.vod_name || '',
+        vod_pic: v.vod_pic || '',
+        vod_remarks: v.vod_continu || '',
+        vod_score: v.vod_scroe || ''
+      });
+    }
+    return items;
   },
   
-  home: function() {
-    return home();
-  },
-  
-  homeVod: function() {
-    return homeVod();
-  },
-  
-  detail: function(id) {
-    return getDetail(id);
-  },
-  
-  category: function(tid, pg, size, year, area, zt, jd) {
-    return category(tid, pg, size, year, area, zt, jd);
-  },
-  
-  search: function(wd, fast) {
-    return search(wd);
-  },
-  
-  play: function(flag, id, flags) {
-    return play(flag, id, flags);
-  }
+  detail: function(id) { return { list: [] }; },
+  category: function(tid, pg) { return { list: [] }; },
+  search: function(wd) { return { list: [] }; },
+  play: function(flag, id, flags) { return { parse: 0, url: id, header: {} }; }
 };
 
 export default Rule;
